@@ -18,6 +18,9 @@ plan:
 apply:
 	terraform apply -var "cluster_name=$(CLUSTER_NAME)" -var "resource_group_name=$(RESOURCE_GROUP)"
 
+unapply:
+	terraform delete
+
 get-k8s-creds:
 	az aks get-credentials --name $(CLUSTER_NAME) --resource-group $(RESOURCE_GROUP)
 
@@ -31,3 +34,6 @@ install:
 		--namespace airflow \
 		airflow \
 		apache-airflow/airflow 
+
+uninstall: 
+	helm delete --namespace airflow airflow
