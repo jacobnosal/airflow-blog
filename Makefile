@@ -32,7 +32,7 @@ install:
 		--install \
 		-f values.yaml \
 		--namespace airflow \
-		--timeout 1200 \
+		--timeout 30m0s \
 		--wait=false \
 		airflow \
 		apache-airflow/airflow 
