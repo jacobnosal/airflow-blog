@@ -10,10 +10,10 @@ dry-run:
 		apache-airflow/airflow 
 
 plan:
-	terraform plan -var "password=$SP_PASSWORD"
+	terraform plan
 
 apply:
-	tarreaform apply -var "password=$SP_PASSWORD"
+	tarreaform apply
 
 add-repo:
 	helm repo add apache-airflow https://airflow.apache.org
