@@ -138,151 +138,13 @@ webserverSecretKeySecretName: ~
 
 # Statsd settings
 statsd:
-  enabled: true
-
-  # Create ServiceAccount
-  serviceAccount:
-    # Specifies whether a ServiceAccount should be created
-    create: true
-    # The name of the ServiceAccount to use.
-    # If not set and create is true, a name is generated using the release name
-    name: ~
-
-    # Annotations to add to worker kubernetes service account.
-    annotations: {}
-
-  # Additional network policies as needed
-  extraNetworkPolicies: []
-  resources: {}
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
-
-  service:
-    extraAnnotations: {}
-
-  # Select certain nodes for statsd pods.
-  nodeSelector: {}
-  affinity: {}
-  tolerations: []
-
-  # Additional mappings for statsd exporter.
-  extraMappings: []
-
-  uid: 65534
+  enabled: false
 
 # PgBouncer settings
 pgbouncer:
   # Enable PgBouncer
-  enabled: true
-  # Command to use for PgBouncer(templated).
-  command: ["pgbouncer", "-u", "nobody", "/etc/pgbouncer/pgbouncer.ini"]
-  # Args to use for PgBouncer(templated).
-  args: ~
-
-  # Create ServiceAccount
-  serviceAccount:
-    # Specifies whether a ServiceAccount should be created
-    create: true
-    # The name of the ServiceAccount to use.
-    # If not set and create is true, a name is generated using the release name
-    name: ~
-
-    # Annotations to add to worker kubernetes service account.
-    annotations: {}
-
-  # Additional network policies as needed
-  extraNetworkPolicies: []
-
-  # Pool sizes
-  metadataPoolSize: 10
-  resultBackendPoolSize: 5
-
-  # Maximum clients that can connect to PgBouncer (higher = more file descriptors)
-  maxClientConn: 100
-
-  # supply the name of existing secret with pgbouncer.ini and users.txt defined
-  # you can load them to a k8s secret like the one below
-  #  apiVersion: v1
-  #  kind: Secret
-  #  metadata:
-  #    name: pgbouncer-config-secret
-  #  data:
-  #     pgbouncer.ini: <base64_encoded pgbouncer.ini file content>
-  #     users.txt: <base64_encoded users.txt file content>
-  #  type: Opaque
-  #
-  #  configSecretName: pgbouncer-config-secret
-  #
-  configSecretName: ~
-
-  # PgBouncer pod disruption budget
-  podDisruptionBudget:
-    enabled: false
-
-    # PDB configuration
-    config:
-      maxUnavailable: 1
-
-  # Limit the resources to PgBouncer.
-  # When you specify the resource request the k8s scheduler uses this information to decide which node to
-  # place the Pod on. When you specify a resource limit for a Container, the kubelet enforces those limits so
-  # that the running container is not allowed to use more of that resource than the limit you set.
-  # See: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  # Example:
-  #
-  # resource:
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
-  resources: {}
-
-  service:
-    extraAnnotations: {}
-
-  # https://www.pgbouncer.org/config.html
-  verbose: 0
-  logDisconnections: 0
-  logConnections: 0
-
-  sslmode: "prefer"
-  ciphers: "normal"
-
-  ssl:
-    ca: ~
-    cert: ~
-    key: ~
-
-  # Add extra PgBouncer ini configuration in the databases section:
-  # https://www.pgbouncer.org/config.html#section-databases
-  extraIniMetadata: ~
-  extraIniResultBackend: ~
-  # Add extra general PgBouncer ini configuration: https://www.pgbouncer.org/config.html
-  extraIni: ~
-
-  # Select certain nodes for PgBouncer pods.
-  nodeSelector: {}
-  affinity: {}
-  tolerations: []
-
-  uid: 65534
-
-  metricsExporterSidecar:
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-
+  enabled: false
+  
 # Configuration for postgresql subchart
 # Not recommended for production
 postgresql:
@@ -293,81 +155,10 @@ dags:
   persistence:
     # Enable persistent volume for storing dags
     enabled: false
-    # Volume size for dags
-    size: 1Gi
-    # If using a custom storageClass, pass name here
-    storageClassName:
-    # access mode of the persistent volume
-    accessMode: ReadWriteOnce
-    ## the name of an existing PVC to use
-    existingClaim:
   gitSync:
     enabled: false
-
-    # git repo clone url
-    # ssh examples ssh://git@github.com/apache/airflow.git
-    # git@github.com:apache/airflow.git
-    # https example: https://github.com/apache/airflow.git
-    repo: https://github.com/apache/airflow.git
-    branch: v2-2-stable
-    rev: HEAD
-    depth: 1
-    # the number of consecutive failures allowed before aborting
-    maxFailures: 0
-    # subpath within the repo where dags are located
-    # should be "" if dags are at repo root
-    subPath: "tests/dags"
-    # if your repo needs a user name password
-    # you can load them to a k8s secret like the one below
-    #   ---
-    #   apiVersion: v1
-    #   kind: Secret
-    #   metadata:
-    #     name: git-credentials
-    #   data:
-    #     GIT_SYNC_USERNAME: <base64_encoded_git_username>
-    #     GIT_SYNC_PASSWORD: <base64_encoded_git_password>
-    # and specify the name of the secret below
-    #
-    # credentialsSecret: git-credentials
-    #
-    #
-    # If you are using an ssh clone url, you can load
-    # the ssh private key to a k8s secret like the one below
-    #   ---
-    #   apiVersion: v1
-    #   kind: Secret
-    #   metadata:
-    #     name: airflow-ssh-secret
-    #   data:
-    #     # key needs to be gitSshKey
-    #     gitSshKey: <base64_encoded_data>
-    # and specify the name of the secret below
-    # sshKeySecret: airflow-ssh-secret
-    #
-    # If you are using an ssh private key, you can additionally
-    # specify the content of your known_hosts file, example:
-    #
-    # knownHosts: |
-    #    <host1>,<ip1> <key1>
-    #    <host2>,<ip2> <key2>
-    # interval between git sync attempts in seconds
-    wait: 60
-    containerName: git-sync
-    uid: 65533
-    extraVolumeMounts: []
-    env: []
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
 
 logs:
   persistence:
     # Enable persistent volume for storing logs
-    enabled: true
-    # Volume size for logs
-    size: 50Gi
+    enabled: false
