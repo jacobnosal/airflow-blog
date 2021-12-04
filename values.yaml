@@ -116,20 +116,16 @@ extraEnvFrom: ~
 
 # Airflow database & redis config
 data:
-  # If secret names are provided, use those secrets
-  metadataSecretName: ~
-  resultBackendSecretName: ~
-  brokerUrlSecretName: ~
 
   # Otherwise pass connection values in
   metadataConnection:
-    user: postgres
+    user: jnosal@airflow-demo-db
     pass: postgres
     protocol: postgresql
-    host: ~
+    host: airflow-demo-db.postgres.database.azure.com
     port: 5432
-    db: postgres
-    sslmode: disable
+    db: airflow-demo-db
+    sslmode: require
 
 # Fernet key settings
 # Note: fernetKey can only be set during install, not upgrade
@@ -285,9 +281,6 @@ pgbouncer:
     #  requests:
     #   cpu: 100m
     #   memory: 128Mi
-
-
-
 
 
 # Configuration for postgresql subchart
