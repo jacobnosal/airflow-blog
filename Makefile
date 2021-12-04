@@ -13,7 +13,7 @@ plan:
 	terraform plan
 
 apply:
-	tarreaform apply
+	terraform apply
 
 add-repo:
 	helm repo add apache-airflow https://airflow.apache.org
