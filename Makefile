@@ -21,6 +21,9 @@ apply:
 destroy:
 	terraform destroy -var "cluster_name=$(CLUSTER_NAME)" -var "resource_group_name=$(RESOURCE_GROUP)"
 
+add-service-principal:
+	az ad sp create-for-rbac --skip-assignment
+
 get-k8s-creds:
 	az aks get-credentials --name $(CLUSTER_NAME) --resource-group $(RESOURCE_GROUP)
 
