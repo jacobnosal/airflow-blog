@@ -23,12 +23,12 @@ executor: "KubernetesExecutor"
 data:
   # Otherwise pass connection values in
   metadataConnection:
-    user: airflow_user@airflow-demo-db
-    pass: postgres
+    user: airflow@airflow-demo-db
+    pass: password
     protocol: postgresql
     host: airflow-demo-db.postgres.database.azure.com
     port: 5432
-    db: airflow-demo-db
+    db: airflow-db
     sslmode: require
 
 # Configuration for postgresql subchart
