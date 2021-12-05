@@ -28,7 +28,7 @@ data:
     protocol: postgresql
     host: airflow-demo-db.postgres.database.azure.com
     port: 5432
-    db: airflow-db
+    db: airflow_db
     sslmode: require
 
 # Configuration for postgresql subchart
