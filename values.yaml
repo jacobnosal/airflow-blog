@@ -20,7 +20,7 @@
 executor: "KubernetesExecutor"
 
 # Environment variables for all airflow containers
-extraEnv:
+env:
   - name: AIRFLOW__CORE__LOAD_EXAMPLES
     value: "True"
 
