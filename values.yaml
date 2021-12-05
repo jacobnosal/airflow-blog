@@ -18,3 +18,20 @@
 # Airflow executor
 # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor, CeleryKubernetesExecutor
 executor: "KubernetesExecutor"
+
+# Airflow database & redis config
+data:
+  # Otherwise pass connection values in
+  metadataConnection:
+    user: airflow_user@airflow-demo-db
+    pass: postgres
+    protocol: postgresql
+    host: airflow-demo-db.postgres.database.azure.com
+    port: 5432
+    db: airflow-demo-db
+    sslmode: require
+
+# Configuration for postgresql subchart
+# Not recommended for production
+postgresql:
+  enabled: false
