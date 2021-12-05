@@ -18,8 +18,8 @@ plan:
 apply:
 	terraform apply -var "cluster_name=$(CLUSTER_NAME)" -var "resource_group_name=$(RESOURCE_GROUP)"
 
-unapply:
-	terraform delete
+destroy:
+	terraform destroy -var "cluster_name=$(CLUSTER_NAME)" -var "resource_group_name=$(RESOURCE_GROUP)"
 
 get-k8s-creds:
 	az aks get-credentials --name $(CLUSTER_NAME) --resource-group $(RESOURCE_GROUP)
@@ -39,3 +39,6 @@ install:
 
 uninstall: 
 	helm delete --namespace airflow airflow
+
+port-forward:
+	kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airflow
