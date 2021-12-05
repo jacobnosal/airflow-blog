@@ -19,6 +19,11 @@
 # Options: LocalExecutor, CeleryExecutor, KubernetesExecutor, CeleryKubernetesExecutor
 executor: "KubernetesExecutor"
 
+# Environment variables for all airflow containers
+extraEnv:
+  - name: AIRFLOW__CORE__LOAD_EXAMPLES
+    value: "True"
+
 # Airflow database & redis config
 data:
   # Otherwise pass connection values in
