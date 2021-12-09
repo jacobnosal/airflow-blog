@@ -28,10 +28,10 @@ env:
 data:
   # Otherwise pass connection values in
   metadataConnection:
-    user: airflow@airflow-demo-db
+    user: airflow@some-host
     pass: password
     protocol: postgresql
-    host: airflow-demo-db.postgres.database.azure.com
+    host: asome-host.postgres.database.azure.com
     port: 5432
     db: airflow_db
     sslmode: require
