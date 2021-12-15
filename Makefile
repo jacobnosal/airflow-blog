@@ -23,6 +23,10 @@ destroy:
 		-var "resource_group_name=$(RESOURCE_GROUP)" \
 		-auto-approve
 
+cluster-setup:
+	kubectl apply -f namespace.yaml
+	kubectl apply -f elastic-secret.yaml
+
 airflow-add-repo:
 	helm repo add apache-airflow https://airflow.apache.org
 
