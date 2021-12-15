@@ -1,0 +1,138 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+---
+# Airflow executor
+# Options: LocalExecutor, CeleryExecutor, KubernetesExecutor, CeleryKubernetesExecutor
+executor: "KubernetesExecutor"
+
+# Environment variables for all airflow containers
+env:
+  - name: AIRFLOW__CORE__LOAD_EXAMPLES
+    value: "True"
+
+# Images
+images:
+  airflow:
+    repository: jacobnosal/airflow
+    tag: 2.2.2
+
+# python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)"
+# fernetKey: ohmG2Xs9zOj3j8uxfMv08NVv9GycGN5rYx8v6TXh43M=
+
+# Airflow database & redis config
+data:
+  # Otherwise pass connection values in
+  metadataConnection:
+    user: airflow@db-host
+    pass: your-password
+    protocol: postgresql
+    host: db-host.postgres.database.azure.com
+    port: 5432
+    db: airflow_db
+    sslmode: require
+elasticsearch:
+  enabled: true
+  secretName: elastic-secret
+config:
+  elasticsearch:
+    # This query works with the Elastic Cloud Service configuratioon.
+    frontend: https://elastic_host:9243/app/discover#/?_a=(columns:!(message),filters:!(),index:your-index-key,interval:auto,query:(language:kuery,query:'log_id:"{log_id}"'),sort:!(log.offset,asc))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1y,to:now))
+    host: https://elastic_host:9243
+    json_format: 'True'
+    log_id_template: "{dag_id}_{task_id}_{execution_date}_{try_number}"
+    end_of_log_mark: end_of_log
+    write_stdout: 'True'
+    json_fields: asctime, filename, lineno, levelname, message
+  elasticsearch_configs:
+    use_ssl: 'True'
+    verify_certs: 'False'
+    max_retries: 3
+    timeout: 30
+    retry_timeout: 'True'
+# Configuration for postgresql subchart
+# Not recommended for production
+postgresql:
+  enabled: false
+
+# Git sync
+dags:
+  persistence:
+    # Enable persistent volume for storing dags
+    enabled: false
+  gitSync:
+    enabled: true
+
+    # git repo clone url
+    # ssh examples ssh://git@github.com/apache/airflow.git
+    # git@github.com:apache/airflow.git
+    # https example: https://github.com/apache/airflow.git
+    repo: https://github.com/jacobnosal/airflow-dags.git
+    branch: main
+    rev: HEAD
+    depth: 1
+    # the number of consecutive failures allowed before aborting
+    maxFailures: 0
+    # subpath within the repo where dags are located
+    # should be "" if dags are at repo root
+    subPath: "dags"
+    # if your repo needs a user name password
+    # you can load them to a k8s secret like the one below
+    #   ---
+    #   apiVersion: v1
+    #   kind: Secret
+    #   metadata:
+    #     name: git-credentials
+    #   data:
+    #     GIT_SYNC_USERNAME: <base64_encoded_git_username>
+    #     GIT_SYNC_PASSWORD: <base64_encoded_git_password>
+    # and specify the name of the secret below
+    #
+    # credentialsSecret: git-credentials
+    #
+    #
+    # If you are using an ssh clone url, you can load
+    # the ssh private key to a k8s secret like the one below
+    #   ---
+    #   apiVersion: v1
+    #   kind: Secret
+    #   metadata:
+    #     name: airflow-ssh-secret
+    #   data:
+    #     # key needs to be gitSshKey
+    #     gitSshKey: <base64_encoded_data>
+    # and specify the name of the secret below
+    # sshKeySecret: airflow-ssh-secret
+    #
+    # If you are using an ssh private key, you can additionally
+    # specify the content of your known_hosts file, example:
+    #
+    # knownHosts: |
+    #    <host1>,<ip1> <key1>
+    #    <host2>,<ip2> <key2>
+    # interval between git sync attempts in seconds
+    wait: 60
+    containerName: git-sync
+    uid: 65533
+    extraVolumeMounts: []
+    env: []
+    resources: {}
+    #  limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    #  requests:
+    #   cpu: 100m
+    #   memory: 128Mi
