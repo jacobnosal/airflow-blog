@@ -1,0 +1,45 @@
+daemonset:
+  filebeatConfig:
+    filebeat.yml: |
+      logging.json: true
+      filebeat.config:
+        inputs:
+          # Mounted `filebeat-inputs` configmap:
+          path: ${path.config}/inputs.d/*.yml
+          # Reload inputs configs as they change:
+          reload.enabled: false
+        modules:
+          path: ${path.config}/modules.d/*.yml
+          # Reload module configs as they change:
+          reload.enabled: false
+      filebeat.autodiscover:
+        providers:
+          - type: kubernetes
+            templates:
+            - condition:
+                equals:
+                  kubernetes.namespace: airflow
+              config:
+                - type: container
+                  paths:
+                  - /var/log/containers/*${data.kubernetes.container.id}.log
+                  multiline.pattern: '^[[:space:]]'
+                  multiline.negate: false
+                  multiline.match: after
+                  include_lines: ['^{']
+      
+      processors:
+      - decode_json_fields:
+          fields: ["message"]
+          max_depth: 1
+          target: ""
+          overwrite_keys: true
+          add_error_key: true
+
+      cloud:
+        id: airflow-nonprod:Y2VudHJhbHVzLmF6dXJlLmVsYXN0aWMtY2xvdWQuY29tOjkyNDMkZDkzY2NlN2Y4ZDk3NDk4M2JkNDRlYTk5ODFkMzdjN2UkNzc0YTY5Y2JiMWVjNGFlNDg1OTQ2NmZhYjFkNTk3NWE=
+        auth: elastic:aEEN0NIXE0GAohRkfwJkUSVq
+      
+# # Disable these for debugging through output.console.pretty: true
+# livenessProbe: ~
+# readinessProbe: ~
