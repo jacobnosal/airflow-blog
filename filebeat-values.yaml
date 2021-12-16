@@ -37,8 +37,8 @@ daemonset:
           add_error_key: true
 
       cloud:
-        id: airflow-nonprod:Y2VudHJhbHVzLmF6dXJlLmVsYXN0aWMtY2xvdWQuY29tOjkyNDMkZDkzY2NlN2Y4ZDk3NDk4M2JkNDRlYTk5ODFkMzdjN2UkNzc0YTY5Y2JiMWVjNGFlNDg1OTQ2NmZhYjFkNTk3NWE=
-        auth: elastic:aEEN0NIXE0GAohRkfwJkUSVq
+        id: instance_name:instance_id
+        auth: elastic:password
       
 # # Disable these for debugging through output.console.pretty: true
 # livenessProbe: ~
