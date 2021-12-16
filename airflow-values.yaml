@@ -23,6 +23,10 @@ executor: "KubernetesExecutor"
 env:
   - name: AIRFLOW__CORE__LOAD_EXAMPLES
     value: "True"
+  - name: AIRFLOW__LOGGING__LOGGING_LEVEL
+    value: DEBUG
+  - name: AIRFLOW__LOGGING__FAB_LOGGING_LEVEL
+    value: DEBUG
 
 # Images
 images:
@@ -31,7 +35,10 @@ images:
     tag: 2.2.2
 
 # python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)"
-# fernetKey: ohmG2Xs9zOj3j8uxfMv08NVv9GycGN5rYx8v6TXh43M=
+# This should only be set during installs -- unexpected db migrations will occur if set during upgrades.
+# fernetKey: your-generated-fernet-key
+# python -c "from uuid import uuid4; SECRET_KEY = uuid4().hex; print(SECRET_KEY)"
+webserverSecretKey: your-generated-secret
 
 # Airflow database & redis config
 data:
@@ -48,10 +55,11 @@ elasticsearch:
   enabled: true
   secretName: elastic-secret
 config:
+  webserver:
+    cookie_samesite: "Lax"
   elasticsearch:
-    # This query works with the Elastic Cloud Service configuratioon.
-    frontend: https://elastic_host:9243/app/discover#/?_a=(columns:!(message),filters:!(),index:your-index-key,interval:auto,query:(language:kuery,query:'log_id:"{log_id}"'),sort:!(log.offset,asc))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1y,to:now))
-    host: https://elastic_host:9243
+    frontend: https://elastic_cloud_host:9243/app/discover#/?_a=(columns:!(message),filters:!(),index:dff5d120-5d3d-11ec-b070-4d64674090d3,interval:auto,query:(language:kuery,query:'log_id:"{log_id}"'),sort:!(log.offset,asc))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1y,to:now))
+    host: https://elastic_cloud_host:9243
     json_format: 'True'
     log_id_template: "{dag_id}_{task_id}_{execution_date}_{try_number}"
     end_of_log_mark: end_of_log
@@ -63,8 +71,78 @@ config:
     max_retries: 3
     timeout: 30
     retry_timeout: 'True'
-# Configuration for postgresql subchart
-# Not recommended for production
+
+webserver:
+  webserverConfig: |
+    import os
+    from airflow.configuration import conf
+    from airflow.utils.log.logging_mixin import LoggingMixin
+    from flask_appbuilder.security.manager import AUTH_OAUTH
+    from airflow.www.security import AirflowSecurityManager
+
+    SQLALCHEMY_DATABASE_URI = conf.get("core", "SQL_ALCHEMY_CONN")
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    CSRF_ENABLED = True
+    AUTH_TYPE = AUTH_OAUTH
+    AUTH_USER_REGISTRATION_ROLE = "Public"
+    AUTH_USER_REGISTRATION = True
+
+    class AzureCustomSecurity(AirflowSecurityManager, LoggingMixin):
+        def get_oauth_user_info(self, provider, response=None):
+            if provider == "azure":
+                self.log.debug("Azure response received : {0}".format(response))
+                id_token = response["id_token"]
+                self.log.debug(str(id_token))
+                me = self._azure_jwt_token_parse(id_token)
+                self.log.debug("Parse JWT token : {0}".format(me))
+                parsed_token = {
+                    "name": me["name"],
+                    "email": me["email"],
+                    "first_name": me["given_name"],
+                    "last_name": me["family_name"],
+                    "id": me["oid"],
+                    "username": me["preferred_username"],
+                    "upn": me["oid"],
+                    "role_keys": me["roles"],       
+                }
+                return parsed_token
+            else:
+                return {}
+
+
+    OAUTH_PROVIDERS = [
+        { 
+            'name':'azure', 'token_key':'access_token', 'icon':'fa-windows',
+            'remote_app': {
+                "api_base_url": "https://login.microsoftonline.com/{tenant_id}",
+                "request_token_url": None,
+                'request_token_params': {
+                  'scope': 'openid email profile'
+                },
+                "access_token_url": "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
+                "access_token_params": {
+                  'scope': 'openid email profile'
+                },
+                "authorize_url": "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize",
+                "authorize_params": {
+                  'scope': 'openid email profile'
+                },
+                'client_id':'client_id_from_oauth_app_config',
+                'client_secret':'client_secret_from_oauth_app_config'
+            }
+        }
+    ]
+
+    # a mapping from the values of `userinfo["role_keys"]` to a list of FAB roles
+    AUTH_ROLES_MAPPING = {
+      "airflow_nonprod_admin": ["Admin"],
+      "airflow_nonprod_dev": ["Op"],
+      "airflow_nonprod_viewer": ["Viewer"]
+    }
+
+    AUTH_ROLES_SYNC_AT_LOGIN = True
+    SECURITY_MANAGER_CLASS = AzureCustomSecurity
+
 postgresql:
   enabled: false
 
