@@ -110,8 +110,32 @@ filebeat-install:
 filebeat-uninstall:
 	helm delete filebeat
 
+ingress-add-repo:
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+ingress-dry-run:
+	helm upgrade \
+		--install \
+		--dry-run \
+		--set defaultBackend.enabled=true \
+		-n airflow \
+		nginx ingress-nginx/ingress-nginx
+
+ingress-install:
+	helm upgrade \
+		--install \
+		--set defaultBackend.enabled=true \
+		-n airflow \
+		nginx ingress-nginx/ingress-nginx
+
+ingress-uninstall:
+	helm delete -n airflow nginx
+
 get-k8s-creds:
 	az aks get-credentials --name $(CLUSTER_NAME) --resource-group $(RESOURCE_GROUP)
 
 port-forward:
 	kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airflow
+
+airflow-worker-rolebinding:
+	kubectl create clusterrolebinding airflow-worker-spark-role --clusterrole=edit --serviceaccount=airflow:airflow-worker --namespace=airflow
