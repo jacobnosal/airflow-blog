@@ -1,7 +1,11 @@
-FROM apache/airflow:2.2.2 AS spark-package
-RUN pip install --no-cache-dir apache-airflow-providers-apache-spark==2.0.2
+FROM apache/airflow:2.2.2 AS providers
+RUN pip install \
+    --no-cache-dir \
+    apache-airflow-providers-apache-spark==2.0.2 \
+    apache-airflow-providers-cncf-kubernetes==2.2.0 \
+    kubernetes
 
-FROM spark-package AS java-package
+FROM providers AS java-package
 USER root
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \

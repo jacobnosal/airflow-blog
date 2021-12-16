@@ -32,7 +32,7 @@ env:
 images:
   airflow:
     repository: jacobnosal/airflow
-    tag: 2.2.2
+    tag: 2.2.2-providers
 
 # python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)"
 # This should only be set during installs -- unexpected db migrations will occur if set during upgrades.

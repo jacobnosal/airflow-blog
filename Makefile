@@ -131,6 +131,17 @@ ingress-install:
 ingress-uninstall:
 	helm delete -n airflow nginx
 
+build-images:
+	docker build -t jacobnosal/airflow:2.2.2-providers --target=providers -f airflow.Dockerfile .
+	docker build -t jacobnosal/airflow:2.2.2-spark-worker --target=java-package  -f airflow.Dockerfile .
+
+push-images:
+	docker push jacobnosal/airflow:2.2.2-providers
+	docker push jacobnosal/airflow:2.2.2-spark-worker
+
+.PHONY: image-pipeline
+image-pipeline: build-images push-images
+
 get-k8s-creds:
 	az aks get-credentials --name $(CLUSTER_NAME) --resource-group $(RESOURCE_GROUP)
 
