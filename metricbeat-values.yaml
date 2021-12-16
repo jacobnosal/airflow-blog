@@ -1,0 +1,24 @@
+daemonset:
+  metricbeatConfig:
+    metricbeat.yml: |
+      metricbeat.modules:
+      -------- Airflow Module --------
+      - module: airflow
+        hosts: ["airflow-statsd.airflow"]
+        port: 9102
+        period: 5s
+        index: metrics-airflow
+        ttl: 10s
+        metricsets: ['statsd']
+        service:
+          name: airflow
+      -------- Cloud Auth --------
+      cloud:
+        id: instance_name:instance_id
+        auth: elastic:password
+
+deployment:
+  enabled: false
+
+kube_state_metrics:
+  enabled: false
