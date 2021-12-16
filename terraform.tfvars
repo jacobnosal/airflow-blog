@@ -1,8 +1,0 @@
-appId    = "4fdeddd5-f168-437a-8457-9ebb1ae1a43e"
-password = "UTH-hOB_b3wyiiRL.Txc8KE3Htb2hwgVjx"
-administrator_login = "jnosal"
-administrator_login_password = "Hellevue06!" 
-db_user = "airflow" 
-db_user_password = "huygens"
-db_server_name = "airflow-postgres-demo"
-db_name = "airflow_db"
